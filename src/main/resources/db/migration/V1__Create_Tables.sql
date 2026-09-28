@@ -1,6 +1,3 @@
--- Habilita a geração nativa de UUIDs no PostgreSQL (caso não esteja habilitada)
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- 1. Tabela de Usuários (Emissores)
 CREATE TABLE tb_usuario (
     id_usuario UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -10,12 +7,14 @@ CREATE TABLE tb_usuario (
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Tabela de Produtos/Serviços importados
+-- 2. Tabela de Produtos/Serviços
 CREATE TABLE tb_produto (
     id_produto UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     id_usuario UUID NOT NULL,
     descricao VARCHAR(255) NOT NULL,
     valor_bruto NUMERIC(10,2) NOT NULL,
+    -- NOVO: Campo para Soft Delete (Exclusão Lógica). TRUE por padrão.
+    ativo BOOLEAN DEFAULT TRUE NOT NULL, 
     CONSTRAINT fk_produto_usuario FOREIGN KEY (id_usuario) 
         REFERENCES tb_usuario(id_usuario) ON DELETE CASCADE
 );
@@ -31,7 +30,7 @@ CREATE TABLE tb_recibo (
         REFERENCES tb_usuario(id_usuario) ON DELETE CASCADE
 );
 
--- 4. Tabela de Itens do Recibo (Relação de N:N com descontos aplicados)
+-- 4. Tabela de Itens do Recibo
 CREATE TABLE tb_item_recibo (
     id_item_recibo UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     id_recibo UUID NOT NULL,
@@ -46,10 +45,9 @@ CREATE TABLE tb_item_recibo (
     CONSTRAINT fk_item_produto FOREIGN KEY (id_produto) 
         REFERENCES tb_produto(id_produto),
 
-    -- Trava de segurança no banco de dados para aceitar apenas os descontos permitidos no escopo (e 0 para sem desconto)
     CONSTRAINT chk_percentual_desconto CHECK (percentual_desconto IN (0, 5, 10, 15, 30))
 );
 
--- 5. Criação de Índices para melhorar a performance de consultas futuras
+-- 5. Criação de Índices para performance
 CREATE INDEX idx_produto_usuario ON tb_produto(id_usuario);
 CREATE INDEX idx_recibo_usuario ON tb_recibo(id_usuario);

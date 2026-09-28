@@ -1,11 +1,19 @@
 package com.autorecibo.api.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
+/**
+ * Entidade JPA que representa a tabela tb_produto no banco de dados.
+ */
 @Entity
 @Table(name = "tb_produto")
 @Getter
@@ -22,7 +30,7 @@ public class ProdutoEntity {
     @Column(name = "id_produto", updatable = false, nullable = false)
     private UUID id;
 
-    // Relacionamento Muitos-Para-Um: Vários produtos pertencem a um usuário
+    // Relacionamento com Usuário (Dono do produto)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_usuario", nullable = false)
     private UsuarioEntity usuario;
