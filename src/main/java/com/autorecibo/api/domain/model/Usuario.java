@@ -1,4 +1,4 @@
-package com.autorecibo.api.model;
+package com.autorecibo.api.domain.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

@@ -1,0 +1,403 @@
+diff --git a/build.gradle b/build.gradle
+index e08a086..1ecc2b3 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -24,18 +24,20 @@ dependencies {
+ 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+ 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+ 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+-	implementation 'org.springframework.security.core.userdetails.UserDetailsService'
+ 	implementation 'org.flywaydb:flyway-database-postgresql'
+ 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+-	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
++
++	// Importação de planilhas .xlsx e geração de PDF (verifique as versões mais recentes)
++	implementation 'org.apache.poi:poi-ooxml:5.3.0'
++	implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
++
+ 	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+ 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+ 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+ 	compileOnly 'org.projectlombok:lombok'
+ 	runtimeOnly 'org.postgresql:postgresql'
+-	runtimeOnly 'com.h2database:h2'
++	// H2 apenas em desenvolvimento e testes (fora do jar de produção)
++	testAndDevelopmentOnly 'com.h2database:h2'
+ 	annotationProcessor 'org.projectlombok:lombok'
+ 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+ 	testImplementation 'org.springframework.boot:spring-boot-starter-flyway-test'
+diff --git a/src/main/java/com/autorecibo/api/domain/model/Usuario.java b/src/main/java/com/autorecibo/api/domain/model/Usuario.java
+index 5f20ce4..343fae4 100644
+--- a/src/main/java/com/autorecibo/api/domain/model/Usuario.java
++++ b/src/main/java/com/autorecibo/api/domain/model/Usuario.java
+@@ -40,4 +40,27 @@ public class Usuario {
+ 
+     @Column(name = "data_criacao", nullable = false)
+     private LocalDateTime dataCriacao;
++
++    @PrePersist
++    void antesDeInserir() {
++        if (dataCriacao == null) {
++            dataCriacao = LocalDateTime.now();
++        }
++        normalizar();
++    }
++
++    @PreUpdate
++    void antesDeAtualizar() {
++        normalizar();
++    }
++
++    /** Email em minúsculas e documento só com dígitos, para evitar contas duplicadas. */
++    private void normalizar() {
++        if (email != null) {
++            email = email.trim().toLowerCase();
++        }
++        if (documento != null) {
++            documento = documento.replaceAll("\\D", "");
++        }
++    }
+ }
+diff --git a/src/main/java/com/autorecibo/api/infrastructure/config/security/CustomUserDetailsService.java b/src/main/java/com/autorecibo/api/infrastructure/config/security/CustomUserDetailsService.java
+new file mode 100644
+index 0000000..8f47d09
+--- /dev/null
++++ b/src/main/java/com/autorecibo/api/infrastructure/config/security/CustomUserDetailsService.java
+@@ -0,0 +1,36 @@
++package com.autorecibo.api.infrastructure.config.security;
++
++import com.autorecibo.api.domain.model.Usuario;
++// AJUSTE o pacote abaixo para onde está o seu UsuarioRepository
++import com.autorecibo.api.domain.repository.UsuarioRepository;
++import lombok.RequiredArgsConstructor;
++import org.springframework.security.core.userdetails.User;
++import org.springframework.security.core.userdetails.UserDetails;
++import org.springframework.security.core.userdetails.UserDetailsService;
++import org.springframework.security.core.userdetails.UsernameNotFoundException;
++import org.springframework.stereotype.Service;
++
++/**
++ * Carrega o usuário para o Spring Security. Aceita email, CPF ou CNPJ no login.
++ * O username devolvido é SEMPRE o email: é ele que o JwtService grava no token
++ * e que o filtro usa para recarregar o usuário nas requisições seguintes.
++ */
++@Service
++@RequiredArgsConstructor
++public class CustomUserDetailsService implements UserDetailsService {
++
++    private final UsuarioRepository usuarioRepository;
++
++    @Override
++    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
++        Usuario usuario = (login.contains("@")
++                ? usuarioRepository.findByEmail(login.trim().toLowerCase())
++                : usuarioRepository.findByDocumento(login.replaceAll("\\D", "")))
++                .orElseThrow(() -> new UsernameNotFoundException("Credenciais inválidas"));
++
++        return User.withUsername(usuario.getEmail())
++                .password(usuario.getSenhaHash())
++                .authorities("ROLE_USER")
++                .build();
++    }
++}
+diff --git a/src/main/java/com/autorecibo/api/infrastructure/config/security/JwtAuthenticatorFilter.java b/src/main/java/com/autorecibo/api/infrastructure/config/security/JwtAuthenticatorFilter.java
+index 1d72cd1..2d057db 100644
+--- a/src/main/java/com/autorecibo/api/infrastructure/config/security/JwtAuthenticatorFilter.java
++++ b/src/main/java/com/autorecibo/api/infrastructure/config/security/JwtAuthenticatorFilter.java
+@@ -1,5 +1,6 @@
+ package com.autorecibo.api.infrastructure.config.security;
+ 
++import io.jsonwebtoken.JwtException;
+ import jakarta.servlet.FilterChain;
+ import jakarta.servlet.ServletException;
+ import jakarta.servlet.http.HttpServletRequest;
+@@ -9,17 +10,19 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
+ import org.springframework.security.core.context.SecurityContextHolder;
+ import org.springframework.security.core.userdetails.UserDetails;
+ import org.springframework.security.core.userdetails.UserDetailsService;
++import org.springframework.security.core.userdetails.UsernameNotFoundException;
+ import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+-import org.springframework.stereotype.Component;
+ import org.springframework.web.filter.OncePerRequestFilter;
+-import org.springframework.security.core.userdetails.UserDetailsService;
+ 
+ import java.io.IOException;
+ 
+ /**
+- * Filtro que interceta todas as requisições HTTP para validar o token JWT.
++ * Filtro que interceta as requisições HTTP para validar o token JWT.
++ *
++ * IMPORTANTE: esta classe NÃO é um bean (sem @Component). Ela é instanciada na
++ * SecurityConfig e entra apenas na cadeia do Spring Security. Como bean, o Spring
++ * Boot a registraria também como filtro de servlet, e ela rodaria duas vezes.
+  */
+-@Component
+ public class JwtAuthenticatorFilter extends OncePerRequestFilter {
+ 
+     private final JwtService jwtService;
+@@ -36,40 +39,41 @@ public class JwtAuthenticatorFilter extends OncePerRequestFilter {
+             @NonNull HttpServletResponse response,
+             @NonNull FilterChain filterChain
+     ) throws ServletException, IOException {
+-        
++
+         final String authHeader = request.getHeader("Authorization");
+-        final String jwt;
+-        final String userEmail;
+ 
+-        // 1. Verifica se o cabeçalho possui o token no formato "Bearer "
++        // 1. Sem cabeçalho "Bearer ": segue a cadeia sem autenticar
+         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+             filterChain.doFilter(request, response);
+             return;
+         }
+ 
+-        // 2. Extrai o token removendo a palavra "Bearer "
+-        jwt = authHeader.substring(7);
+-        userEmail = jwtService.extractUsername(jwt);
++        try {
++            // 2. Extrai o token removendo "Bearer "
++            final String jwt = authHeader.substring(7);
++            final String userEmail = jwtService.extractUsername(jwt);
+ 
+-        // 3. Valida e autentica o utilizador no contexto do Spring Security
+-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+-            
+-            // Vai à base de dados procurar o utilizador (deverás implementar a ligação no UserDetailsService)
+-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
++            // 3. Valida e autentica no contexto do Spring Security
++            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
++                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+ 
+-            if (jwtService.isTokenValid(jwt, userDetails)) {
+-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+-                        userDetails,
+-                        null,
+-                        userDetails.getAuthorities()
+-                );
+-                
+-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+-                SecurityContextHolder.getContext().setAuthentication(authToken);
++                if (jwtService.isTokenValid(jwt, userDetails)) {
++                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
++                            userDetails,
++                            null,
++                            userDetails.getAuthorities()
++                    );
++                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
++                    SecurityContextHolder.getContext().setAuthentication(authToken);
++                }
+             }
++        } catch (JwtException | IllegalArgumentException | UsernameNotFoundException e) {
++            // Token expirado, malformado, com assinatura errada ou de usuário inexistente:
++            // não autentica e deixa o Spring Security responder 401 (em vez de estourar 500).
++            logger.debug("Token JWT rejeitado: " + e.getMessage());
+         }
+-        
+-        // 4. Liberta a requisição para o próximo filtro ou controlador
++
++        // 4. Libera a requisição para o próximo filtro ou controlador
+         filterChain.doFilter(request, response);
+     }
+ }
+diff --git a/src/main/java/com/autorecibo/api/infrastructure/config/security/JwtService.java b/src/main/java/com/autorecibo/api/infrastructure/config/security/JwtService.java
+index 012772c..3558996 100644
+--- a/src/main/java/com/autorecibo/api/infrastructure/config/security/JwtService.java
++++ b/src/main/java/com/autorecibo/api/infrastructure/config/security/JwtService.java
+@@ -20,11 +20,15 @@ import java.util.function.Function;
+ @Service
+ public class JwtService {
+ 
+-    // A chave secreta deve ter pelo menos 256 bits (32 caracteres). 
+-    // Em produção, este valor deve vir das variáveis de ambiente.
+-    @Value("${api.security.token.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
++    // Chave em Base64 com pelo menos 256 bits (ex.: openssl rand -base64 32).
++    // Sem valor padrão de propósito: se a propriedade faltar, a aplicação não sobe.
++    @Value("${jwt.secret}")
+     private String secretKey;
+ 
++    // Tempo de expiração em milissegundos (propriedade jwt.expiration).
++    @Value("${jwt.expiration}")
++    private long expiration;
++
+     /**
+      * Extrai o email (username) contido dentro do token.
+      */
+@@ -55,7 +59,7 @@ public class JwtService {
+                 .claims(extraClaims)
+                 .subject(userDetails.getUsername())
+                 .issuedAt(new Date(System.currentTimeMillis()))
+-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // Expira em 24 horas
++                .expiration(new Date(System.currentTimeMillis() + expiration))
+                 .signWith(getSignInKey(), Jwts.SIG.HS256)
+                 .compact();
+     }
+diff --git a/src/main/java/com/autorecibo/api/infrastructure/config/security/SecurityConfig.java b/src/main/java/com/autorecibo/api/infrastructure/config/security/SecurityConfig.java
+index 8c0ba77..2a9740c 100644
+--- a/src/main/java/com/autorecibo/api/infrastructure/config/security/SecurityConfig.java
++++ b/src/main/java/com/autorecibo/api/infrastructure/config/security/SecurityConfig.java
+@@ -1,9 +1,11 @@
+ package com.autorecibo.api.infrastructure.config.security;
+ 
+-import com.autorecibo.api.infrastructure.config.security.JwtAuthenticatorFilter;
+ import lombok.RequiredArgsConstructor;
+ import org.springframework.context.annotation.Bean;
+ import org.springframework.context.annotation.Configuration;
++import org.springframework.core.env.Environment;
++import org.springframework.core.env.Profiles;
++import org.springframework.http.HttpStatus;
+ import org.springframework.security.authentication.AuthenticationManager;
+ import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+ import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+@@ -14,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
+ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+ import org.springframework.security.crypto.password.PasswordEncoder;
+ import org.springframework.security.web.SecurityFilterChain;
++import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+ import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+ 
+ @Configuration
+@@ -22,28 +25,46 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
+ public class SecurityConfig {
+ 
+ 	private final UserDetailsService userDetailsService;
+-	private final JwtAuthenticatorFilter jwtAuthenticatorFilter;
++	private final JwtService jwtService;
++	private final Environment environment;
+ 
+ 	@Bean
+ 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
++		final boolean dev = environment.acceptsProfiles(Profiles.of("dev"));
++
++		// Filtro criado aqui (e não como bean) para rodar só na cadeia do Security
++		JwtAuthenticatorFilter jwtFilter = new JwtAuthenticatorFilter(jwtService, userDetailsService);
++
+ 		http
+ 			// API stateless com JWT: sem sessão, sem CSRF, sem form-login
+ 			.csrf(csrf -> csrf.disable())
+ 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+-			.authorizeHttpRequests(auth -> auth
+-				// Endpoints públicos: login, registro, console H2 (só em dev)
+-				.requestMatchers("/auth/**", "/h2-console/**").permitAll()
+-				.anyRequest().authenticated()
+-			)
+-			// Necessário para o H2 console renderizar dentro de um frame
+-			.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+-			.addFilterBefore(jwtAuthenticatorFilter, UsernamePasswordAuthenticationFilter.class);
++			.authorizeHttpRequests(auth -> {
++				// Login e registro (README: /api/auth/*). Remova "/auth/**" se seus controllers usam só /api/auth.
++				auth.requestMatchers("/api/auth/**", "/auth/**").permitAll();
++				// Frontend estático (tela de login precisa abrir sem token)
++				auth.requestMatchers("/", "/index.html", "/css/**", "/js/**", "/favicon.ico").permitAll();
++				// Console H2 somente no perfil dev
++				if (dev) {
++					auth.requestMatchers("/h2-console/**").permitAll();
++				}
++				auth.anyRequest().authenticated();
++			})
++			// Sem token ou token inválido: 401 (o padrão seria 403)
++			.exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
++			.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
++
++		// O console H2 precisa renderizar dentro de um frame (somente dev)
++		if (dev) {
++			http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
++		}
+ 
+ 		return http.build();
+ 	}
+ 
++	// static: evita dependência circular quando outros beans dependem do encoder
+ 	@Bean
+-	public PasswordEncoder passwordEncoder() {
++	static PasswordEncoder passwordEncoder() {
+ 		return new BCryptPasswordEncoder();
+ 	}
+ 
+diff --git a/src/main/resources/application-dev.properties b/src/main/resources/application-dev.properties
+new file mode 100644
+index 0000000..b03d53b
+--- /dev/null
++++ b/src/main/resources/application-dev.properties
+@@ -0,0 +1,20 @@
++# ==========================================
++# Perfil DEV — H2 em memória
++# ==========================================
++spring.datasource.url=jdbc:h2:mem:autorecibo;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
++spring.datasource.username=sa
++spring.datasource.password=
++spring.datasource.driver-class-name=org.h2.Driver
++
++# Flyway desativado em dev — o Hibernate cria as tabelas direto
++spring.flyway.enabled=false
++spring.jpa.hibernate.ddl-auto=create
++spring.jpa.show-sql=true
++spring.jpa.properties.hibernate.format_sql=true
++
++# Console visual do H2 no navegador (somente dev)
++spring.h2.console.enabled=true
++spring.h2.console.path=/h2-console
++
++# Chave JWT SOMENTE PARA DESENVOLVIMENTO (Base64, 256 bits). Nunca use em produção.
++jwt.secret=qKJmoBr36FiYRE3U7EV/2OmEx3QgEMd1BJsSiM4cHPc=
+diff --git a/src/main/resources/application-prod.properties b/src/main/resources/application-prod.properties
+new file mode 100644
+index 0000000..936cc40
+--- /dev/null
++++ b/src/main/resources/application-prod.properties
+@@ -0,0 +1,16 @@
++# ==========================================
++# Perfil PROD — PostgreSQL + Flyway
++# Todos os valores sensíveis vêm de variáveis de ambiente (sem valor padrão:
++# se alguma faltar, a aplicação não sobe, de propósito).
++# ==========================================
++spring.datasource.url=${DB_URL}
++spring.datasource.username=${DB_USER}
++spring.datasource.password=${DB_PASSWORD}
++
++spring.flyway.enabled=true
++spring.jpa.hibernate.ddl-auto=validate
++spring.jpa.show-sql=false
++spring.h2.console.enabled=false
++
++# Gere com: openssl rand -base64 32
++jwt.secret=${JWT_SECRET}
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+index 6690c5c..7b66b1e 100644
+--- a/src/main/resources/application.properties
++++ b/src/main/resources/application.properties
+@@ -1,26 +1,10 @@
+ # ==========================================
+-# Configuração do Banco de Dados H2 (Em Memória)
++# Configurações comuns a todos os perfis
+ # ==========================================
+-spring.datasource.url=jdbc:h2:mem:autorecibo;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+-spring.datasource.username=sa
+-spring.datasource.password=
+-spring.datasource.driver-class-name=org.h2.Driver
++spring.application.name=autorecibo
++# Perfil padrão: dev (H2 em memória). Em produção use SPRING_PROFILES_ACTIVE=prod
++spring.profiles.default=dev
++spring.jpa.open-in-view=false
+ 
+-# ==========================================
+-# Configurações do JPA (Hibernate) e Flyway
+-# ==========================================
+-# Flyway desativado por enquanto — sem Postgres, o Hibernate cria as tabelas direto
+-spring.flyway.enabled=false
+-spring.jpa.hibernate.ddl-auto=create
+-spring.jpa.show-sql=true
+-spring.jpa.properties.hibernate.format_sql=true
+-
+-# Console visual do H2 no navegador
+-spring.h2.console.enabled=true
+-spring.h2.console.path=/h2-console
+-
+-# ==========================================
+-# Configurações de JWT
+-# ==========================================
+-jwt.secret=chave-secreta-apenas-para-desenvolvimento-1234567890
++# Expiração do token JWT em milissegundos (1 hora)
+ jwt.expiration=3600000

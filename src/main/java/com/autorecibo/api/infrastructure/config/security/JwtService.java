@@ -15,57 +15,51 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Serviço responsável por toda a manipulação matemática e criptográfica do JWT.
+ * Serviço responsável por gerar e validar tokens JWT.
  */
 @Service
 public class JwtService {
 
-    // A chave secreta deve ter pelo menos 256 bits (32 caracteres). 
-    // Em produção, este valor deve vir das variáveis de ambiente.
-    @Value("${api.security.token.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
+    // Chave em Base64 com pelo menos 256 bits (ex.: openssl rand -base64 32).
+    // Sem valor padrão de propósito: se a propriedade faltar, a aplicação não sobe.
+    @Value("${jwt.secret}")
     private String secretKey;
 
-    /**
-     * Extrai o email (username) contido dentro do token.
-     */
+    // Tempo de expiração em milissegundos (propriedade jwt.expiration).
+    @Value("${jwt.expiration}")
+    private long expiration;
+
+    /** Extrai o email (username) contido no token. */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    /**
-     * Extrai uma informação específica (Claim) do token.
-     */
+    /** Extrai uma informação específica (claim) do token. */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    /**
-     * Gera um novo token JWT para o utilizador autenticado.
-     */
+    /** Gera um novo token para o usuário autenticado. */
     public String generateToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
     }
 
-    /**
-     * Gera um token incluindo claims (informações) extra.
-     */
+    /** Gera um token incluindo claims extras. */
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // Expira em 24 horas
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
-    /**
-     * Valida se o token pertence ao utilizador e se ainda não expirou.
-     */
+    /** Valida se o token pertence ao usuário e se ainda não expirou. */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
@@ -84,9 +78,7 @@ public class JwtService {
                 .getPayload();
     }
 
-    /**
-     * Converte a string base64 numa chave criptográfica válida para o algoritmo HS256.
-     */
+    /** Converte a string Base64 em chave válida para HS256. */
     private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
