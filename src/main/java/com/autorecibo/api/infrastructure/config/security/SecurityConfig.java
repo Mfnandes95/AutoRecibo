@@ -43,10 +43,10 @@ public class SecurityConfig {
 				// Login e registro. Remova "/auth/**" se seus controllers usam só /api/auth.
 				auth.requestMatchers("/api/auth/**", "/auth/**").permitAll();
 				// Frontend estático (a tela de login precisa abrir sem token)
-				auth.requestMatchers("/", "/index.html", "/css/**", "/js/**", "/favicon.ico").permitAll();
+				auth.requestMatchers("/", "/index.html", "/cadastro.html", "/painel.html", "/css/**", "/js/**", "/favicon.ico").permitAll();
 				// Console H2 somente no perfil dev
 				if (dev) {
-					auth.requestMatchers("/h2-console/**").permitAll();
+					auth.requestMatchers("/error", "/h2-console/**").permitAll();
 				}
 				auth.anyRequest().authenticated();
 			})
