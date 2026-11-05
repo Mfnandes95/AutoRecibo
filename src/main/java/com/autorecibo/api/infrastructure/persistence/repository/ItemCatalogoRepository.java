@@ -11,6 +11,8 @@ import java.util.UUID;
 public interface ItemCatalogoRepository
         extends JpaRepository<ItemCatalogo, UUID> {
 
+    List<ItemCatalogo> findAllByUsuario_Id(UUID usuarioId);
+
     List<ItemCatalogo> findAllByIdInAndUsuario_Id(
             Set<UUID> ids,
             UUID usuarioId
