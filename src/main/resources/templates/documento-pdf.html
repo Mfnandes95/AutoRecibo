@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${tipoTitulo} + ' #' + ${numero}">Documento</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 15mm 15mm 15mm 15mm;
+            @bottom-center {
+                content: "AutoRecibo — Documento de controle comercial sem valor fiscal";
+                font-size: 8pt;
+                color: #64748b;
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 9.5pt;
+            color: #1e293b;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Utilitários de Tabela */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Cabeçalho */
+        .header-table {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #059669;
+            padding-bottom: 12px;
+        }
+
+        .brand-title {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #059669;
+            margin: 0;
+        }
+
+        .brand-subtitle {
+            font-size: 8.5pt;
+            color: #64748b;
+            margin: 2px 0 0 0;
+        }
+
+        .doc-badge {
+            text-align: right;
+        }
+
+        .doc-tipo {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #0f172a;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .doc-numero {
+            font-size: 11pt;
+            color: #059669;
+            font-weight: bold;
+            margin: 2px 0 0 0;
+        }
+
+        .doc-data {
+            font-size: 8.5pt;
+            color: #64748b;
+            margin: 2px 0 0 0;
+        }
+
+        /* Seções de Partes (Emissor e Cliente) */
+        .info-container {
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            vertical-align: top;
+            width: 48%;
+        }
+
+        .info-title {
+            font-size: 8.5pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #059669;
+            margin: 0 0 6px 0;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+        }
+
+        .info-row {
+            margin: 3px 0;
+            font-size: 9pt;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #475569;
+        }
+
+        /* Tabela de Itens */
+        .itens-section {
+            margin-bottom: 20px;
+        }
+
+        .itens-title {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #0f172a;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .tabela-itens {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .tabela-itens th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-size: 8.5pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 8px 10px;
+            border-bottom: 1px solid #cbd5e1;
+        }
+
+        .tabela-itens td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 9pt;
+        }
+
+        .tabela-itens tr:last-child td {
+            border-bottom: none;
+        }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+
+        /* Resumo e Totais */
+        .totais-container {
+            margin-bottom: 20px;
+        }
+
+        .observacoes-box {
+            width: 55%;
+            vertical-align: top;
+            padding-right: 20px;
+        }
+
+        .observacoes-inner {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 8.5pt;
+            color: #475569;
+        }
+
+        .observacoes-title {
+            font-weight: bold;
+            color: #334155;
+            margin-bottom: 4px;
+            font-size: 8.5pt;
+            text-transform: uppercase;
+        }
+
+        .totais-box {
+            width: 45%;
+            vertical-align: top;
+        }
+
+        .tabela-totais {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .tabela-totais td {
+            padding: 6px 12px;
+            font-size: 9pt;
+        }
+
+        .linha-total-geral {
+            background-color: #ecfdf5;
+            border-top: 2px solid #059669;
+            font-size: 11pt !important;
+            font-weight: bold;
+            color: #065f46;
+        }
+
+        /* Assinaturas */
+        .assinaturas-section {
+            margin-top: 35px;
+        }
+
+        .campo-assinatura {
+            width: 45%;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .linha-assinatura {
+            border-top: 1px solid #64748b;
+            margin-top: 45px;
+            padding-top: 5px;
+            font-size: 8.5pt;
+            color: #334155;
+        }
+
+        /* Nota Fiscal Disclaimer */
+        .aviso-legal {
+            margin-top: 25px;
+            padding: 8px 12px;
+            background-color: #f8fafc;
+            border-left: 3px solid #94a3b8;
+            font-size: 7.5pt;
+            color: #64748b;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho -->
+    <table class="header-table">
+        <tr>
+            <td style="vertical-align: middle;">
+                <h1 class="brand-title">AutoRecibo</h1>
+                <p class="brand-subtitle">Gestão comercial e emissão simplificada para MEIs</p>
+            </td>
+            <td class="doc-badge" style="vertical-align: middle;">
+                <h2 class="doc-tipo" th:text="${tipoTitulo}">RECIBO DE PAGAMENTO</h2>
+                <p class="doc-numero" th:text="'Nº ' + ${numero}">Nº 00001</p>
+                <p class="doc-data" th:text="'Emitido em: ' + ${dataEmissao}">Emitido em: 05/11/2026 20:00</p>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Dados do Emissor e do Cliente -->
+    <table class="info-container">
+        <tr>
+            <!-- Emissor (MEI) -->
+            <td class="info-box">
+                <div class="info-title">Dados do Prestador / Emissor</div>
+                <div class="info-row">
+                    <span class="info-label">E-mail:</span>
+                    <span th:text="${emitenteEmail}">emissor@email.com</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">CPF / CNPJ:</span>
+                    <span th:text="${emitenteDocumento}">00.000.000/0001-00</span>
+                </div>
+            </td>
+
+            <td style="width: 4%;"></td>
+
+            <!-- Cliente -->
+            <td class="info-box">
+                <div class="info-title">Dados do Cliente</div>
+                <div class="info-row">
+                    <span class="info-label">Nome:</span>
+                    <span th:text="${clienteNome}">Nome do Cliente</span>
+                </div>
+                <div class="info-row" th:if="${temClienteDocumento}">
+                    <span class="info-label">CPF / CNPJ:</span>
+                    <span th:text="${clienteDocumento}">000.000.000-00</span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Lista de Itens -->
+    <div class="itens-section">
+        <div class="itens-title" th:text="${isOrdemServico} ? 'Serviços e Produtos Executados' : 'Itens do Recibo'">Itens do Documento</div>
+        <table class="tabela-itens">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 8%;">#</th>
+                    <th class="text-left" style="width: 44%;">Descrição</th>
+                    <th class="text-center" style="width: 12%;">Qtd.</th>
+                    <th class="text-right" style="width: 14%;">Vlr. Unitário</th>
+                    <th class="text-center" style="width: 10%;">Desc.</th>
+                    <th class="text-right" style="width: 12%;">Vlr. Líquido</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${itens}">
+                    <td class="text-center" th:text="${item.ordem}">1</td>
+                    <td class="text-left" th:text="${item.nome}" style="font-weight: 500;">Serviço prestado</td>
+                    <td class="text-center" th:text="${item.quantidade}">1</td>
+                    <td class="text-right" th:text="${item.precoUnitario}">R$ 100,00</td>
+                    <td class="text-center" th:text="${item.desconto}">-</td>
+                    <td class="text-right" th:text="${item.valorLiquido}" style="font-weight: 600;">R$ 100,00</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totais e Observações -->
+    <table class="totais-container">
+        <tr>
+            <td class="observacoes-box">
+                <div class="observacoes-inner" th:if="${temObservacoes}">
+                    <div class="observacoes-title">Observações</div>
+                    <div th:text="${observacoes}">Nenhuma observação.</div>
+                </div>
+            </td>
+
+            <td class="totais-box">
+                <table class="tabela-totais">
+                    <tr>
+                        <td class="text-left" style="color: #64748b;">Subtotal:</td>
+                        <td class="text-right" style="font-weight: 500;" th:text="${subtotal}">R$ 0,00</td>
+                    </tr>
+                    <tr>
+                        <td class="text-left" style="color: #64748b;">Total de Descontos:</td>
+                        <td class="text-right" style="color: #dc2626; font-weight: 500;" th:text="'- ' + ${totalDescontos}">- R$ 0,00</td>
+                    </tr>
+                    <tr class="linha-total-geral">
+                        <td class="text-left">VALOR TOTAL:</td>
+                        <td class="text-right" th:text="${total}">R$ 0,00</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Assinaturas -->
+    <table class="assinaturas-section">
+        <tr>
+            <td class="campo-assinatura">
+                <div class="linha-assinatura">
+                    <strong th:text="${emitenteEmail}">Prestador</strong><br/>
+                    <span>Assinatura do Emissor</span>
+                </div>
+            </td>
+            <td style="width: 10%;"></td>
+            <td class="campo-assinatura">
+                <div class="linha-assinatura">
+                    <strong th:text="${clienteNome}">Cliente</strong><br/>
+                    <span>Assinatura do Cliente</span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Aviso Legal -->
+    <div class="aviso-legal">
+        <strong>Atenção:</strong> Este documento possui finalidade exclusivamente comprobatória de prestação de serviços ou entrega de mercadorias entre as partes, servindo como recibo de quitação ou ordem de execução para fins de controle e organização comercial. Não substitui nota fiscal eletrônica (NF-e/NFS-e).
+    </div>
+
+</body>
+</html>

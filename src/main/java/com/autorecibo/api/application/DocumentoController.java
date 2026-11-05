@@ -4,9 +4,12 @@ import com.autorecibo.api.application.service.DocumentoService;
 import com.autorecibo.api.application.dto.DocumentoRequest;
 import com.autorecibo.api.application.dto.DocumentoResponse;
 import com.autorecibo.api.application.dto.DocumentoResumoResponse;
+import com.autorecibo.api.domain.model.TipoDocumento;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,16 +58,20 @@ public class DocumentoController {
     }
 
     /**
-     * Download do PDF. A checagem de dono já funciona (404 se não for do usuário);
-     * a geração do PDF (Thymeleaf + OpenHTMLToPDF) é a próxima etapa.
+     * Download do PDF gerado a partir do documento emitido.
+     * Retorna o arquivo PDF pronto para visualização ou download.
      */
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> pdf(@AuthenticationPrincipal UserDetails usuario, @PathVariable UUID id) {
-        service.buscar(usuario.getUsername(), id);
-        // TODO: byte[] pdf = pdfService.gerar(documento);
-        //       return ResponseEntity.ok()
-        //               .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"documento-" + numero + ".pdf\"")
-        //               .contentType(MediaType.APPLICATION_PDF).body(pdf);
-        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Geração de PDF ainda não implementada.");
+        DocumentoResponse doc = service.buscar(usuario.getUsername(), id);
+        byte[] pdf = service.gerarPdf(usuario.getUsername(), id);
+
+        String prefixo = doc.tipo() == TipoDocumento.ORDEM_SERVICO ? "ordem-servico-" : "recibo-";
+        String filename = prefixo + doc.numero() + ".pdf";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 }

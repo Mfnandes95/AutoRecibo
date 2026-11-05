@@ -49,6 +49,7 @@ public class DocumentoService {
     private final UsuarioRepository usuarioRepository;
     private final ItemCatalogoRepository catalogoRepository;
     private final DocumentoRepository documentoRepository;
+    private final PdfService pdfService;
 
     @Transactional(readOnly = true)
     public DocumentoResponse preview(String email, DocumentoRequest req) {
@@ -86,6 +87,14 @@ public class DocumentoService {
         Documento doc = documentoRepository.findByIdAndUsuarioId(id, usuario.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Documento não encontrado."));
         return paraResponse(doc);
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] gerarPdf(String email, UUID id) {
+        Usuario usuario = usuario(email);
+        Documento doc = documentoRepository.findByIdAndUsuarioId(id, usuario.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Documento não encontrado."));
+        return pdfService.gerarPdf(doc, usuario);
     }
 
     // ---------------------------------------------------------------- internos
