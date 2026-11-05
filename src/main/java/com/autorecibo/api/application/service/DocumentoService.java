@@ -12,7 +12,7 @@ import com.autorecibo.api.application.dto.ItemDocumentoResponse;
 import com.autorecibo.api.infrastructure.persistence.repository.UsuarioRepository;
 import com.autorecibo.api.infrastructure.persistence.repository.DocumentoRepository;
 import com.autorecibo.api.infrastructure.persistence.repository.ItemCatalogoRepository;
-import com.autorecibo.api.application.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;

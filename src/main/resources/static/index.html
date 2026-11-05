@@ -3,70 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrar - AutoRecibo</title>
-    <!-- Tailwind via CDN serve para desenvolvimento; em produção gere o CSS com o Tailwind CLI. -->
+    <title>AutoRecibo — Recibos e Ordens de Serviço para MEI</title>
+    <!-- Tailwind via CDN para desenvolvimento -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { brand: '#059669', brandHover: '#047857' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#059669',
+                        brandHover: '#047857',
+                        brandLight: '#ecfdf5'
+                    }
+                }
+            }
+        }
     </script>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen font-sans p-4">
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-sans selection:bg-brand/10 selection:text-brand">
 
-    <main class="bg-white p-8 sm:p-10 rounded-2xl shadow-sm w-full max-w-md border border-gray-100">
-        <div class="mb-8">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-50 mb-6 border border-emerald-100">
-                <span class="text-2xl" aria-hidden="true">👋</span>
+    <!-- Navegação Superior -->
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-20">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-brand rounded-xl flex items-center justify-center text-white shadow-sm">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-xl font-bold text-gray-900 tracking-tight">AutoRecibo</span>
+                    <span class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold bg-emerald-50 text-brand rounded-md border border-emerald-100">Sistema Unificado</span>
+                </div>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Que bom ver você!</h1>
-            <p class="text-gray-500 text-sm leading-relaxed">Entre para emitir recibos e ordens de serviço em poucos cliques.</p>
+
+            <nav class="flex items-center space-x-3 text-sm">
+                <a href="#funcionalidades" class="hidden md:inline-block text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg transition-colors font-medium">Recursos</a>
+                <a href="#como-funciona" class="hidden md:inline-block text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg transition-colors font-medium">Como Funciona</a>
+                <a href="cadastro.html" class="inline-flex items-center px-4 py-2 border border-brand/20 bg-brandLight text-brand hover:bg-brand hover:text-white rounded-xl font-medium transition-all shadow-sm">
+                    Criar conta
+                </a>
+            </nav>
         </div>
+    </header>
 
-        <form id="loginForm" class="space-y-5" novalidate>
-            <div id="erro" role="alert" hidden></div>
+    <!-- Banner caso usuário já esteja logado -->
+    <div id="sessaoAtiva" hidden class="bg-emerald-600 text-white text-sm py-2.5 px-4 text-center">
+        <span>Você já está conectado.</span>
+        <a href="painel.html" class="underline font-semibold ml-2 hover:text-emerald-100">Acessar meu painel &rarr;</a>
+    </div>
 
-            <div>
-                <label for="login" class="block text-sm font-medium text-gray-700 mb-1.5">Email, CPF ou CNPJ</label>
-                <input type="text" id="login" autocomplete="username" autocapitalize="none" required
-                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all">
+    <!-- Seção Principal: Hero + Formulário de Entrada -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col justify-center">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            <!-- Coluna Esquerda: Apresentação do Escopo do Projeto -->
+            <div class="lg:col-span-7 space-y-6">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full text-xs font-semibold text-brand">
+                    <span class="flex h-2 w-2 rounded-full bg-brand"></span>
+                    <span>Plataforma Oficial para MEIs e Autônomos</span>
+                </div>
+
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 leading-tight">
+                    Emita <span class="text-brand">Recibos</span> e <span class="text-brand">Ordens de Serviço</span> em segundos.
+                </h1>
+
+                <p class="text-base sm:text-lg text-gray-600 leading-relaxed max-w-xl">
+                    Tudo unificado em um só lugar. Gerencie seu catálogo de produtos e serviços, calcule valores com segurança e emita documentos comerciais profissionais para seus clientes.
+                </p>
+
+                <!-- Destaques do Escopo Unificado -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div class="p-4 bg-white rounded-xl border border-gray-100 shadow-sm flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-brand flex items-center justify-center shrink-0 font-bold">
+                            🧾
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-bold text-gray-900">Recibos & Ordens de Serviço</h2>
+                            <p class="text-xs text-gray-500 mt-0.5">Alterne entre os tipos de documentos em um fluxo unificado e ágil.</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white rounded-xl border border-gray-100 shadow-sm flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-brand flex items-center justify-center shrink-0 font-bold">
+                            📦
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-bold text-gray-900">Catálogo com Preço Seguro</h2>
+                            <p class="text-xs text-gray-500 mt-0.5">Preços recalculados diretamente no servidor, eliminando manipulação.</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white rounded-xl border border-gray-100 shadow-sm flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-brand flex items-center justify-center shrink-0 font-bold">
+                            🔢
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-bold text-gray-900">Numeração Sequencial</h2>
+                            <p class="text-xs text-gray-500 mt-0.5">Cada documento tem seu número sequencial garantido contra conflitos.</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white rounded-xl border border-gray-100 shadow-sm flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-brand flex items-center justify-center shrink-0 font-bold">
+                            🔒
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-bold text-gray-900">Histórico & Snapshot</h2>
+                            <p class="text-xs text-gray-500 mt-0.5">Documentos emitidos são imutáveis e preservam os dados originais.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 text-xs text-gray-400 flex items-center space-x-2">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Documentos comerciais para controle e entrega ao cliente (não fiscais).</span>
+                </div>
             </div>
 
-            <div>
-                <label for="senha" class="block text-sm font-medium text-gray-700 mb-1.5">Senha</label>
-                <input type="password" id="senha" autocomplete="current-password" required
-                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all">
+            <!-- Coluna Direita: Card de Login -->
+            <div class="lg:col-span-5">
+                <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-200">
+                    <div class="mb-6">
+                        <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-50 mb-3 border border-emerald-100">
+                            <span class="text-xl" aria-hidden="true">🔑</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900">Acesse sua conta</h2>
+                        <p class="text-gray-500 text-sm mt-1">Entre com seu e-mail ou documento para acessar o painel.</p>
+                    </div>
+
+                    <!-- Mensagens de Alerta (erro/sucesso) -->
+                    <div id="erro" role="alert" hidden class="mb-5"></div>
+
+                    <!-- Formulário de Login -->
+                    <form id="loginForm" class="space-y-4" novalidate>
+                        <div>
+                            <label for="login" class="block text-sm font-medium text-gray-700 mb-1.5">E-mail, CPF ou CNPJ</label>
+                            <input type="text" id="login" autocomplete="username" autocapitalize="none" required
+                                placeholder="seu@email.com ou 00.000.000/0001-00"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-sm">
+                        </div>
+
+                        <div>
+                            <label for="senha" class="block text-sm font-medium text-gray-700 mb-1.5">Senha</label>
+                            <input type="password" id="senha" autocomplete="current-password" required
+                                placeholder="Sua senha secreta"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-sm">
+                        </div>
+
+                        <button type="submit" id="entrar"
+                            class="w-full bg-brand hover:bg-brandHover disabled:opacity-60 text-white font-medium py-3 rounded-xl transition-all shadow-sm mt-2 flex items-center justify-center space-x-2">
+                            <span>Entrar no Painel</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
+                    </form>
+
+                    <div class="mt-6 pt-5 border-t border-gray-100 text-center">
+                        <p class="text-sm text-gray-500">
+                            Ainda não possui cadastro?
+                            <a href="cadastro.html" class="text-brand font-semibold hover:underline ml-1">Criar conta grátis</a>
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <button type="submit" id="entrar"
-                class="w-full bg-brand hover:bg-brandHover disabled:opacity-60 text-white font-medium py-3 rounded-xl transition-all shadow-sm mt-2">
-                Entrar
-            </button>
-        </form>
-
-        <p class="mt-8 text-center text-sm text-gray-500">
-            Ainda não tem conta? <a href="cadastro.html" class="text-brand font-medium hover:underline">Criar conta</a>
-        </p>
+        </div>
     </main>
 
+    <!-- Seção de Recursos / Como Funciona -->
+    <section id="funcionalidades" class="bg-white border-t border-gray-100 py-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <h2 class="text-2xl font-bold text-gray-900">Projetado para simplificar sua rotina</h2>
+                <p class="text-gray-500 text-sm mt-2">Sem complexidades fiscais. Um sistema direto ao ponto para registrar serviços e emitir comprovantes.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="como-funciona">
+                <div class="p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100/60 text-brand flex items-center justify-center font-bold text-lg mb-4">
+                        1
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1">Cadastre seus Itens</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        Mantenha uma lista com seus produtos e serviços com valores predefinidos.
+                    </p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100/60 text-brand flex items-center justify-center font-bold text-lg mb-4">
+                        2
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1">Monte o Documento</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        Escolha entre Recibo ou Ordem de Serviço, informe o cliente e aplique descontos padronizados (0%, 5%, 10%, 15% ou 30%).
+                    </p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100/60 text-brand flex items-center justify-center font-bold text-lg mb-4">
+                        3
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-1">Emissão Instantânea</h3>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        O backend calcula tudo com precisão, gera a numeração contínua e salva um snapshot seguro do documento.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="bg-gray-50 border-t border-gray-100 py-6 text-center text-xs text-gray-400">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>&copy; AutoRecibo — Sistema de Emissão Comercial para MEIs</span>
+            <span>Documentos informativos e comprovantes comerciais (não fiscais).</span>
+        </div>
+    </footer>
+
+    <!-- Scripts de Integração com a API -->
     <script src="js/app.js"></script>
     <script>
-        if (Sessao.token) location.replace('painel.html');
-        const erro = $('erro');
-        if (new URLSearchParams(location.search).get('cadastro') === 'ok') {
-            aviso(erro, 'Conta criada. Entre com seu email, CPF ou CNPJ.', true);
+        // Se já tiver token, avisa na barra superior
+        if (Sessao.token) {
+            $('sessaoAtiva').hidden = false;
         }
 
+        const erro = $('erro');
+
+        // Mensagem de sucesso quando redirecionado do cadastro
+        if (new URLSearchParams(location.search).get('cadastro') === 'ok') {
+            aviso(erro, 'Sua conta foi criada com sucesso! Faça seu login para começar.', true);
+        }
+
+        // Submissão do formulário de autenticação
         $('loginForm').addEventListener('submit', (ev) => {
             ev.preventDefault();
             const bruto = $('login').value.trim();
             const senha = $('senha').value;
-            if (!bruto || !senha) return aviso(erro, 'Preencha o login e a senha.');
-            // Email vai em minúsculas; CPF/CNPJ vai só com números.
+
+            if (!bruto || !senha) {
+                return aviso(erro, 'Por favor, informe seu login e senha.');
+            }
+
+            // Normalização: email em minúsculas; CPF/CNPJ somente dígitos
             const login = bruto.includes('@') ? bruto.toLowerCase() : soDigitos(bruto);
 
             enviar(ev.target, $('entrar'), erro, async () => {
-                const dados = await api('/api/auth/login', { metodo: 'POST', corpo: { [CFG.campoLogin]: login, senha } });
+                const dados = await api('/api/auth/login', {
+                    metodo: 'POST',
+                    corpo: { [CFG.campoLogin]: login, senha }
+                });
+
                 const token = dados?.[CFG.campoToken];
-                if (!token) throw new Error('Resposta inesperada do servidor.');
+                if (!token) {
+                    throw new Error('Não foi possível obter o token de acesso.');
+                }
+
                 Sessao.salvar(token);
                 location.href = 'painel.html';
             });
