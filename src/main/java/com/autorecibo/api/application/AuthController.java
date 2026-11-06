@@ -25,6 +25,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.autorecibo.api.application.service.CatalogoService catalogoService;
 
 
     // ============================================================
@@ -137,6 +138,11 @@ public class AuthController {
         );
 
         usuarioRepository.save(usuario);
+
+        // Popula automaticamente os 12 itens de produtos e serviços para testes do usuário
+        try {
+            catalogoService.popularItensPadrao(email);
+        } catch (Exception ignored) {}
 
         // --------------------------------------------------------
         // Retorna sucesso

@@ -6,63 +6,213 @@
     <title>Meu painel - AutoRecibo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { brand: '#059669', brandHover: '#047857' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#059669',
+                        brandHover: '#047857',
+                        brandLight: '#ecfdf5'
+                    }
+                }
+            }
+        }
     </script>
 </head>
 <body class="bg-[#F8FAFC] flex h-dvh overflow-hidden font-sans">
 
+    <!-- Sidebar Desktop -->
     <aside id="sidebar" class="bg-white w-64 border-r border-gray-100 flex-col hidden md:flex">
         <div class="h-20 flex items-center px-6">
-            <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center mr-3">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center mr-3 shadow-sm">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
             </div>
             <span class="text-xl font-bold text-gray-800 tracking-tight">AutoRecibo</span>
         </div>
-        <nav class="flex-1 px-4 py-4">
-            <a href="painel.html" aria-current="page" class="flex items-center px-3 py-2.5 bg-emerald-50/70 text-brand rounded-xl font-medium">Meu painel</a>
+        <nav class="flex-1 px-4 py-4 space-y-1">
+            <a href="painel.html" aria-current="page" class="flex items-center px-3 py-2.5 bg-emerald-50/70 text-brand rounded-xl font-medium">
+                <span class="mr-2.5">📦</span> Catálogo & Emissão
+            </a>
+            <a href="index.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl font-medium">
+                <span class="mr-2.5">🏠</span> Página Inicial
+            </a>
         </nav>
         <div class="p-4">
             <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
                 <p id="usuario" class="text-sm font-medium text-gray-900 truncate"></p>
-                <button id="sair" class="text-xs text-gray-500 hover:text-gray-900 underline mt-1">Sair da conta</button>
+                <button id="sair" class="text-xs text-red-600 hover:text-red-800 font-medium underline mt-1">Sair da conta</button>
             </div>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-full overflow-hidden">
-        <header class="md:hidden h-16 bg-white border-b border-gray-100 flex items-center px-4">
-            <button id="menu" aria-label="Abrir menu" class="text-gray-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <!-- Header Mobile -->
+        <header class="md:hidden h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4">
+            <div class="flex items-center space-x-2">
+                <div class="w-7 h-7 bg-brand rounded-lg flex items-center justify-center text-white">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <span class="font-bold text-gray-800">AutoRecibo</span>
+            </div>
+            <button id="menu" aria-label="Abrir menu" class="text-gray-500 p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 sm:p-8">
-            <h1 id="saudacao" class="text-2xl font-bold text-gray-900"></h1>
-            <p id="data" class="text-gray-500 mt-1 mb-8"></p>
+        <div class="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8">
+            <!-- Cabeçalho -->
+            <div>
+                <h1 id="saudacao" class="text-2xl font-bold text-gray-900"></h1>
+                <p id="data" class="text-gray-500 mt-1"></p>
+            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                <div class="bg-white p-6 rounded-2xl border border-gray-100">
-                    <p class="text-sm font-medium text-gray-500 mb-1">Itens no catálogo</p>
-                    <p id="total" class="text-3xl font-bold text-gray-900">–</p>
+            <!-- Avisos Globais -->
+            <div id="aviso" role="alert" hidden class="mb-5"></div>
+
+            <!-- Cards de Ações Rápidas & Catálogo -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Card 1: Total no Catálogo -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Itens no catálogo</p>
+                        <p id="total" class="text-3xl font-extrabold text-gray-900">–</p>
+                        <p class="text-xs text-gray-400 mt-1">Produtos e serviços disponíveis para emissão</p>
+                    </div>
+                    <div class="pt-4 flex gap-2">
+                        <button id="btnRecarregarTeste" class="text-xs bg-emerald-50 text-brand border border-emerald-200 hover:bg-emerald-100 px-3 py-2 rounded-xl font-medium transition-colors">
+                            ⚡ Carregar 12 itens de teste
+                        </button>
+                    </div>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border border-gray-100">
-                    <label for="arquivo" class="text-sm font-medium text-gray-700 block mb-2">Importar planilha (.xlsx, até 5 MB)</label>
-                    <input type="file" id="arquivo" accept=".xlsx" class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-2 file:text-brand file:font-medium">
-                    <button id="importar" class="mt-3 bg-brand hover:bg-brandHover disabled:opacity-60 text-white text-sm px-4 py-2 rounded-xl font-medium">Importar itens</button>
+
+                <!-- Card 2: Importar Planilha -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <label for="arquivo" class="text-sm font-medium text-gray-700 block mb-2">Importar planilha (.xlsx)</label>
+                        <input type="file" id="arquivo" accept=".xlsx" class="block w-full text-xs text-gray-600 file:mr-2 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-2.5 file:py-1.5 file:text-brand file:font-medium">
+                    </div>
+                    <div class="mt-3 flex items-center justify-between">
+                        <button id="importar" class="bg-brand hover:bg-brandHover disabled:opacity-60 text-white text-xs px-3.5 py-2 rounded-xl font-medium transition-colors shadow-sm">
+                            Importar planilha
+                        </button>
+                        <a href="/planilha_produtos_teste.xlsx" download class="text-xs text-brand hover:underline font-medium">
+                            📥 Baixar modelo (.xlsx)
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 3: Adicionar Item Manual -->
+                <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+                    <p class="text-sm font-medium text-gray-700 mb-2">Cadastrar item individual</p>
+                    <form id="formNovoItem" class="space-y-2">
+                        <input type="text" id="novoItemNome" required placeholder="Nome do produto ou serviço" class="w-full text-xs px-3 py-1.5 border border-gray-200 rounded-lg outline-none focus:border-brand">
+                        <div class="flex gap-2">
+                            <input type="number" id="novoItemPreco" step="0.01" min="0" required placeholder="Preço (R$)" class="w-1/2 text-xs px-3 py-1.5 border border-gray-200 rounded-lg outline-none focus:border-brand">
+                            <button type="submit" id="btnSalvarItem" class="w-1/2 bg-gray-900 hover:bg-black text-white text-xs rounded-lg font-medium py-1.5 transition-colors">
+                                + Adicionar
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <div id="aviso" role="alert" hidden class="mb-5"></div>
-
-            <section class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                <h2 class="px-6 py-5 border-b border-gray-100 text-lg font-bold text-gray-900">Seu catálogo</h2>
+            <!-- Tabela: Catálogo de Produtos e Serviços -->
+            <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900">Itens do seu catálogo</h2>
+                        <p class="text-xs text-gray-500">Valores fixados no servidor para cálculo e emissão segura</p>
+                    </div>
+                    <span id="badgeContador" class="text-xs bg-emerald-50 text-brand px-2.5 py-1 rounded-full font-semibold border border-emerald-100">0 itens</span>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50/50 text-gray-500">
-                            <tr><th class="px-6 py-3 font-medium">Item</th><th class="px-6 py-3 font-medium">Preço</th></tr>
+                        <thead class="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-3 font-medium">Produto / Serviço</th>
+                                <th class="px-6 py-3 font-medium">Descrição</th>
+                                <th class="px-6 py-3 font-medium">Preço Unitário</th>
+                                <th class="px-6 py-3 font-medium text-right">Ação</th>
+                            </tr>
                         </thead>
                         <tbody id="itens" class="divide-y divide-gray-100 text-gray-700"></tbody>
                     </table>
+                </div>
+            </section>
+
+            <!-- Seção de Emissão de Documento e Teste de PDF -->
+            <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
+                <div class="mb-6">
+                    <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <span>🧾</span> Emissão Rápida & Geração de PDF
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-1">Monte um documento com os itens do catálogo acima e gere o PDF instantaneamente.</p>
+                </div>
+
+                <form id="formEmissao" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Tipo de Documento</label>
+                            <select id="docTipo" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand bg-white">
+                                <option value="RECIBO">Recibo</option>
+                                <option value="ORDEM_SERVICO">Ordem de Serviço</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nome do Cliente</label>
+                            <input type="text" id="docClienteNome" required placeholder="Ex: Maria Oliveira" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">CPF ou CNPJ do Cliente (opcional)</label>
+                            <input type="text" id="docClienteDoc" placeholder="000.000.000-00" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Item do Catálogo</label>
+                            <select id="docItemSelect" required class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand bg-white">
+                                <option value="">Selecione um item...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Quantidade</label>
+                            <input type="number" id="docQuantidade" value="1" min="1" step="1" required class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Desconto (%)</label>
+                            <select id="docDesconto" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand bg-white">
+                                <option value="0">0% (Sem desconto)</option>
+                                <option value="5">5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="30">30%</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Observações (opcional)</label>
+                        <input type="text" id="docObservacoes" placeholder="Ex: Garantia de 90 dias sobre as peças e serviços." class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand">
+                    </div>
+
+                    <div class="pt-2 flex items-center gap-3">
+                        <button type="submit" id="btnEmitirPdf" class="bg-brand hover:bg-brandHover text-white text-sm px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm flex items-center gap-2">
+                            <span>📄</span> Emitir e Visualizar PDF
+                        </button>
+                    </div>
+                </form>
+
+                <div id="resultadoEmissao" hidden class="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-emerald-900" id="resDocTitulo"></p>
+                        <p class="text-xs text-emerald-700" id="resDocDetalhes"></p>
+                    </div>
+                    <a id="resDocLink" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition-colors shadow-sm inline-flex items-center gap-1.5">
+                        <span>📥</span> Abrir PDF
+                    </a>
                 </div>
             </section>
         </div>
@@ -80,34 +230,86 @@
         $('saudacao').textContent = (h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite') + '!';
         $('data').textContent = 'Hoje é ' + new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) + '.';
 
-        function linha(a, b, cls = '') {
+        let catalogoItens = [];
+
+        function renderizarLinhaItem(item) {
             const tr = document.createElement('tr');
-            [a, b].forEach((t) => {
-                const td = document.createElement('td');
-                td.className = 'px-6 py-3 ' + cls;
-                td.textContent = t;   // textContent: nomes vindos da planilha nunca viram HTML
-                tr.appendChild(td);
-            });
+            tr.className = 'hover:bg-gray-50/50 transition-colors';
+
+            const preco = item.preco ?? item.valor ?? item.valorUnitario;
+
+            tr.innerHTML = `
+                <td class="px-6 py-3.5 font-medium text-gray-900">${item.nome || '—'}</td>
+                <td class="px-6 py-3.5 text-xs text-gray-500 max-w-xs truncate">${item.descricao || '—'}</td>
+                <td class="px-6 py-3.5 font-semibold text-gray-900">${preco == null ? '—' : brl(preco)}</td>
+                <td class="px-6 py-3.5 text-right">
+                    <button class="btnExcluir text-xs text-red-500 hover:text-red-700 p-1" data-id="${item.id}" title="Excluir item">
+                        🗑️
+                    </button>
+                </td>
+            `;
+
+            tr.querySelector('.btnExcluir').onclick = async () => {
+                if (!confirm(`Remover "${item.nome}" do catálogo?`)) return;
+                try {
+                    await api(`/api/catalogo/${item.id}`, { metodo: 'DELETE' });
+                    aviso($('aviso'), 'Item excluído.', true);
+                    await carregar();
+                } catch (e) {
+                    aviso($('aviso'), e.message);
+                }
+            };
+
             return tr;
         }
 
         async function carregar() {
             try {
                 const d = await api('/api/catalogo');
-                const lista = Array.isArray(d) ? d : (d?.content ?? []);
-                $('total').textContent = lista.length;
-                const corpo = $('itens'); corpo.replaceChildren();
-                if (!lista.length) {
-                    const tr = linha('Seu catálogo está vazio. Importe uma planilha .xlsx para começar.', '', 'text-gray-500');
-                    corpo.appendChild(tr); return;
-                }
-                lista.forEach((i) => {
-                    const preco = i.preco ?? i.valor ?? i.valorUnitario;
-                    corpo.appendChild(linha(i.nome ?? i.descricao ?? '—', preco == null ? '—' : brl(preco)));
+                catalogoItens = Array.isArray(d) ? d : (d?.content ?? []);
+                $('total').textContent = catalogoItens.length;
+                $('badgeContador').textContent = catalogoItens.length + (catalogoItens.length === 1 ? ' item' : ' itens');
+                
+                const corpo = $('itens'); 
+                corpo.replaceChildren();
+
+                // Atualiza dropdown de emissão
+                const sel = $('docItemSelect');
+                sel.innerHTML = '<option value="">Selecione um item...</option>';
+                catalogoItens.forEach(i => {
+                    const opt = document.createElement('option');
+                    opt.value = i.id;
+                    opt.textContent = `${i.nome} — ${brl(i.preco)}`;
+                    sel.appendChild(opt);
                 });
-            } catch (e) { aviso($('aviso'), e.message); }
+
+                if (!catalogoItens.length) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="4" class="px-6 py-8 text-center text-gray-500 text-sm">
+                        Seu catálogo está vazio. Clique em <button id="btnCarregarVazio" class="text-brand font-semibold underline">Carregar 12 itens de teste</button> ou importe uma planilha .xlsx.
+                    </td>`;
+                    corpo.appendChild(tr);
+                    $('btnCarregarVazio').onclick = carregarItensTeste;
+                    return;
+                }
+
+                catalogoItens.forEach(i => corpo.appendChild(renderizarLinhaItem(i)));
+            } catch (e) { 
+                aviso($('aviso'), e.message); 
+            }
         }
 
+        async function carregarItensTeste() {
+            await enviar(null, $('btnRecarregarTeste'), $('aviso'), async () => {
+                await api('/api/catalogo/popular-teste', { metodo: 'POST' });
+                aviso($('aviso'), '12 itens de teste carregados no catálogo com sucesso!', true);
+                await carregar();
+            });
+        }
+
+        $('btnRecarregarTeste').onclick = carregarItensTeste;
+
+        // Importação de planilha
         $('importar').onclick = async () => {
             const f = $('arquivo').files[0];
             if (!f) return aviso($('aviso'), 'Escolha uma planilha .xlsx.');
@@ -115,10 +317,92 @@
             if (f.size > 5 * 1024 * 1024) return aviso($('aviso'), 'A planilha passa de 5 MB.');
             const form = new FormData(); form.append(CFG.campoArquivo, f);
             await enviar(null, $('importar'), $('aviso'), async () => {
-                await api('/api/catalogo/importar', { metodo: 'POST', form });
-                aviso($('aviso'), 'Planilha importada.', true);
+                const res = await api('/api/catalogo/importar', { metodo: 'POST', form });
+                aviso($('aviso'), res?.mensagem || 'Planilha importada com sucesso!', true);
                 $('arquivo').value = '';
                 await carregar();
+            });
+        };
+
+        // Cadastro manual de item
+        $('formNovoItem').onsubmit = async (ev) => {
+            ev.preventDefault();
+            const nome = $('novoItemNome').value.trim();
+            const preco = parseFloat($novoItemPreco = $('novoItemPreco').value);
+            if (!nome || isNaN(preco)) return;
+
+            await enviar(null, $('btnSalvarItem'), $('aviso'), async () => {
+                await api('/api/catalogo', {
+                    metodo: 'POST',
+                    corpo: { nome, preco, descricao: null }
+                });
+                aviso($('aviso'), 'Item adicionado ao catálogo!', true);
+                $('novoItemNome').value = '';
+                $('novoItemPreco').value = '';
+                await carregar();
+            });
+        };
+
+        // Emissão de documento & download de PDF
+        $('formEmissao').onsubmit = async (ev) => {
+            ev.preventDefault();
+            const tipo = $('docTipo').value;
+            const clienteNome = $('docClienteNome').value.trim();
+            const clienteDocumento = $('docClienteDoc').value.trim() || null;
+            const itemCatalogoId = $('docItemSelect').value;
+            const quantidade = parseFloat($('docQuantidade').value) || 1;
+            const descontoPercentual = parseInt($('docDesconto').value) || 0;
+            const observacoes = $('docObservacoes').value.trim() || null;
+
+            if (!itemCatalogoId) {
+                return aviso($('aviso'), 'Selecione um item do catálogo para emitir o documento.');
+            }
+
+            await enviar(null, $('btnEmitirPdf'), $('aviso'), async () => {
+                const payload = {
+                    tipo,
+                    clienteNome,
+                    clienteDocumento,
+                    observacoes,
+                    itens: [
+                        {
+                            itemCatalogoId,
+                            quantidade,
+                            descontoPercentual
+                        }
+                    ]
+                };
+
+                const doc = await api('/api/documentos', {
+                    metodo: 'POST',
+                    corpo: payload
+                });
+
+                if (doc && doc.id) {
+                    aviso($('aviso'), `Documento #${doc.numero} emitido com sucesso! Total: ${brl(doc.total)}`, true);
+                    
+                    $('resDocTitulo').textContent = `${doc.tipo === 'RECIBO' ? 'Recibo' : 'Ordem de Serviço'} #${doc.numero} emitido para ${doc.clienteNome}`;
+                    $('resDocDetalhes').textContent = `Subtotal: ${brl(doc.subtotal)} | Descontos: ${brl(doc.totalDescontos)} | Total: ${brl(doc.total)}`;
+                    
+                    const link = $('resDocLink');
+                    link.href = `/api/documentos/${doc.id}/pdf`;
+                    
+                    // Dispara o download automático do PDF usando o token
+                    try {
+                        const blob = await fetch(`/api/documentos/${doc.id}/pdf`, {
+                            headers: { 'Authorization': 'Bearer ' + Sessao.token }
+                        }).then(r => r.blob());
+                        
+                        const url = window.URL.createObjectURL(blob);
+                        link.href = url;
+                        link.download = `${doc.tipo.toLowerCase()}-${doc.numero}.pdf`;
+                        window.open(url, '_blank');
+                    } catch (err) {
+                        console.error('Falha ao abrir PDF diretamente:', err);
+                    }
+
+                    $('resultadoEmissao').hidden = false;
+                }
             });
         };
 
