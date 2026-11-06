@@ -2,5 +2,6 @@ package com.autorecibo.api.domain.model;
 
 public enum TipoDocumento {
     RECIBO,
-    ORDEM_SERVICO
+    ORDEM_SERVICO,
+    NOTA_FISCAL
 }

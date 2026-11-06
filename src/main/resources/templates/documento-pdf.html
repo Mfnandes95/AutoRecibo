@@ -291,7 +291,7 @@
 
     <!-- Lista de Itens -->
     <div class="itens-section">
-        <div class="itens-title" th:text="${isOrdemServico} ? 'Serviços e Produtos Executados' : 'Itens do Recibo'">Itens do Documento</div>
+        <div class="itens-title" th:text="${isOrdemServico} ? 'Serviços e Produtos Executados' : (${isNotaFiscal} ? 'Produtos e Serviços Discriminados' : 'Itens do Recibo')">Itens do Documento</div>
         <table class="tabela-itens">
             <thead>
                 <tr>

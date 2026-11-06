@@ -66,7 +66,11 @@ public class DocumentoController {
         DocumentoResponse doc = service.buscar(usuario.getUsername(), id);
         byte[] pdf = service.gerarPdf(usuario.getUsername(), id);
 
-        String prefixo = doc.tipo() == TipoDocumento.ORDEM_SERVICO ? "ordem-servico-" : "recibo-";
+        String prefixo = switch (doc.tipo()) {
+            case ORDEM_SERVICO -> "ordem-servico-";
+            case NOTA_FISCAL -> "nota-fiscal-";
+            case RECIBO -> "recibo-";
+        };
         String filename = prefixo + doc.numero() + ".pdf";
 
         return ResponseEntity.ok()

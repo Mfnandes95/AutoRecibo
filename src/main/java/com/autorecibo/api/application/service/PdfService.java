@@ -47,11 +47,21 @@ public class PdfService {
             Context context = new Context(PT_BR);
 
             boolean isOs = doc.getTipo() == TipoDocumento.ORDEM_SERVICO;
-            String tipoTitulo = isOs ? "ORDEM DE SERVIÇO" : "RECIBO DE PAGAMENTO";
+            boolean isNf = doc.getTipo() == TipoDocumento.NOTA_FISCAL;
+            String tipoTitulo;
+            if (isOs) {
+                tipoTitulo = "ORDEM DE SERVIÇO";
+            } else if (isNf) {
+                tipoTitulo = "NOTA FISCAL DE SERVIÇOS E PRODUTOS";
+            } else {
+                tipoTitulo = "RECIBO DE PAGAMENTO";
+            }
+
             String numeroFormatado = String.format("%05d", doc.getNumero() != null ? doc.getNumero() : 0);
 
             context.setVariable("tipoTitulo", tipoTitulo);
             context.setVariable("isOrdemServico", isOs);
+            context.setVariable("isNotaFiscal", isNf);
             context.setVariable("numero", numeroFormatado);
             context.setVariable("dataEmissao", doc.getEmitidoEm() != null ? doc.getEmitidoEm().format(DATA_HORA_FORMATTER) : "-");
 

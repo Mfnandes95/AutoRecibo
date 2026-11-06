@@ -33,7 +33,7 @@
         </div>
         <nav class="flex-1 px-4 py-4 space-y-1">
             <a href="painel.html" aria-current="page" class="flex items-center px-3 py-2.5 bg-emerald-50/70 text-brand rounded-xl font-medium">
-                <span class="mr-2.5">📦</span> Catálogo & Emissão
+                <span class="mr-2.5">🧾</span> Notas Fiscais & Catálogo
             </a>
             <a href="index.html" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 rounded-xl font-medium">
                 <span class="mr-2.5">🏠</span> Página Inicial
@@ -71,14 +71,145 @@
             <!-- Avisos Globais -->
             <div id="aviso" role="alert" hidden class="mb-5"></div>
 
+            <!-- Seção de Emissão de Nota Fiscal / Documento com Múltiplos Itens -->
+            <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
+                <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-100 pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                            <span>🧾</span> Emissão de Nota Fiscal / Documento Comercial
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-0.5">Adicione quantos produtos ou ordens de serviço desejar em uma única nota fiscal.</p>
+                    </div>
+                    <span class="text-xs font-semibold px-3 py-1 bg-emerald-50 text-brand border border-emerald-100 rounded-full w-fit">
+                        Múltiplos Itens Ativo
+                    </span>
+                </div>
+
+                <form id="formEmissao" class="space-y-6">
+                    <!-- Dados Básicos -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Tipo de Documento</label>
+                            <select id="docTipo" class="w-full text-sm px-3.5 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-brand bg-white font-medium">
+                                <option value="NOTA_FISCAL" selected>Nota Fiscal</option>
+                                <option value="ORDEM_SERVICO">Ordem de Serviço</option>
+                                <option value="RECIBO">Recibo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nome do Cliente *</label>
+                            <input type="text" id="docClienteNome" required placeholder="Ex: Maria Oliveira ou Empresa XYZ" class="w-full text-sm px-3.5 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-brand">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">CPF ou CNPJ do Cliente (opcional)</label>
+                            <input type="text" id="docClienteDoc" placeholder="000.000.000-00 ou 00.000.000/0001-00" class="w-full text-sm px-3.5 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-brand">
+                        </div>
+                    </div>
+
+                    <!-- Adicionador de Itens (Produtos ou Serviços) -->
+                    <div class="bg-gray-50/70 p-4 sm:p-5 rounded-2xl border border-gray-200/80 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-1.5">
+                                <span>➕</span> Adicionar Produtos / Serviços à Nota Fiscal
+                            </span>
+                            <span class="text-xs text-gray-400">Valores unitários sincronizados do catálogo</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                            <div class="sm:col-span-6">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Selecione o Item do Catálogo</label>
+                                <select id="builderItemSelect" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand bg-white">
+                                    <option value="">Carregando itens...</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Qtd.</label>
+                                <input type="number" id="builderQuantidade" value="1" min="0.001" step="any" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Desconto</label>
+                                <select id="builderDesconto" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand bg-white">
+                                    <option value="0">0%</option>
+                                    <option value="5">5%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15">15%</option>
+                                    <option value="30">30%</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <button type="button" id="btnAdicionarLinha" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2.5 rounded-xl font-medium transition-colors shadow-sm flex items-center justify-center gap-1">
+                                    <span>+ Incluir Item</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabela de Itens Selecionados na Nota Fiscal -->
+                    <div class="border border-gray-200 rounded-xl overflow-hidden shadow-2xs">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-100/60 text-gray-600 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="px-4 py-2.5">#</th>
+                                    <th class="px-4 py-2.5">Produto / Serviço</th>
+                                    <th class="px-4 py-2.5 text-center">Qtd.</th>
+                                    <th class="px-4 py-2.5 text-right">Vlr. Unitário</th>
+                                    <th class="px-4 py-2.5 text-center">Desc.</th>
+                                    <th class="px-4 py-2.5 text-right">Subtotal</th>
+                                    <th class="px-4 py-2.5 text-center">Remover</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaItensDocumento" class="divide-y divide-gray-100 text-gray-800">
+                                <tr id="linhaVaziaDocumento">
+                                    <td colspan="7" class="px-4 py-6 text-center text-xs text-gray-400">
+                                        Nenhum item adicionado ainda. Escolha um produto ou serviço acima e clique em <b>"+ Incluir Item"</b>.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Resumo Financeiro da Nota Fiscal -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/80">
+                        <div class="w-full sm:w-1/2">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Observações na Nota Fiscal (opcional)</label>
+                            <input type="text" id="docObservacoes" placeholder="Ex: Garantia de 90 dias. Pagamento via Pix." class="w-full text-xs px-3 py-2 bg-white border border-gray-200 rounded-lg outline-none focus:border-brand">
+                        </div>
+
+                        <div class="w-full sm:w-auto text-right space-y-1">
+                            <div class="text-xs text-gray-600">Subtotal bruto: <span id="resumoSubtotal" class="font-medium text-gray-800">R$ 0,00</span></div>
+                            <div class="text-xs text-red-600">Descontos aplicados: <span id="resumoDesconto" class="font-medium">- R$ 0,00</span></div>
+                            <div class="text-base font-extrabold text-brand">Total da Nota: <span id="resumoTotal" class="text-lg text-emerald-700">R$ 0,00</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Botão de Emissão -->
+                    <div class="flex items-center gap-3">
+                        <button type="submit" id="btnEmitirPdf" class="bg-brand hover:bg-brandHover disabled:opacity-50 text-white text-sm px-6 py-3 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2">
+                            <span>🧾</span> Emitir Nota Fiscal & Gerar PDF
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Feedback de Emissão com Link de Download -->
+                <div id="resultadoEmissao" hidden class="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                        <p class="text-sm font-bold text-emerald-900" id="resDocTitulo"></p>
+                        <p class="text-xs text-emerald-700" id="resDocDetalhes"></p>
+                    </div>
+                    <a id="resDocLink" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2.5 rounded-lg font-bold transition-colors shadow-sm inline-flex items-center gap-1.5">
+                        <span>📥</span> Baixar / Visualizar PDF
+                    </a>
+                </div>
+            </section>
+
             <!-- Cards de Ações Rápidas & Catálogo -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <!-- Card 1: Total no Catálogo -->
                 <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Itens no catálogo</p>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Itens disponíveis no catálogo</p>
                         <p id="total" class="text-3xl font-extrabold text-gray-900">–</p>
-                        <p class="text-xs text-gray-400 mt-1">Produtos e serviços disponíveis para emissão</p>
+                        <p class="text-xs text-gray-400 mt-1">Produtos e serviços para inclusão em notas</p>
                     </div>
                     <div class="pt-4 flex gap-2">
                         <button id="btnRecarregarTeste" class="text-xs bg-emerald-50 text-brand border border-emerald-200 hover:bg-emerald-100 px-3 py-2 rounded-xl font-medium transition-colors">
@@ -105,7 +236,7 @@
 
                 <!-- Card 3: Adicionar Item Manual -->
                 <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
-                    <p class="text-sm font-medium text-gray-700 mb-2">Cadastrar item individual</p>
+                    <p class="text-sm font-medium text-gray-700 mb-2">Cadastrar novo item no catálogo</p>
                     <form id="formNovoItem" class="space-y-2">
                         <input type="text" id="novoItemNome" required placeholder="Nome do produto ou serviço" class="w-full text-xs px-3 py-1.5 border border-gray-200 rounded-lg outline-none focus:border-brand">
                         <div class="flex gap-2">
@@ -122,7 +253,7 @@
             <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <div>
-                        <h2 class="text-base font-bold text-gray-900">Itens do seu catálogo</h2>
+                        <h2 class="text-base font-bold text-gray-900">Seu catálogo cadastrado</h2>
                         <p class="text-xs text-gray-500">Valores fixados no servidor para cálculo e emissão segura</p>
                     </div>
                     <span id="badgeContador" class="text-xs bg-emerald-50 text-brand px-2.5 py-1 rounded-full font-semibold border border-emerald-100">0 itens</span>
@@ -142,77 +273,28 @@
                 </div>
             </section>
 
-            <!-- Seção de Emissão de Documento e Teste de PDF -->
-            <section class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
-                <div class="mb-6">
-                    <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <span>🧾</span> Emissão Rápida & Geração de PDF
-                    </h2>
-                    <p class="text-xs text-gray-500 mt-1">Monte um documento com os itens do catálogo acima e gere o PDF instantaneamente.</p>
+            <!-- Histórico de Documentos / Notas Emitidas -->
+            <section class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-gray-900">Notas Fiscais & Documentos Emitidos</h2>
+                        <p class="text-xs text-gray-500">Histórico de emissões com download direto do PDF</p>
+                    </div>
+                    <button id="btnAtualizarDocs" class="text-xs text-brand hover:underline font-medium">🔄 Atualizar lista</button>
                 </div>
-
-                <form id="formEmissao" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1">Tipo de Documento</label>
-                            <select id="docTipo" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand bg-white">
-                                <option value="RECIBO">Recibo</option>
-                                <option value="ORDEM_SERVICO">Ordem de Serviço</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1">Nome do Cliente</label>
-                            <input type="text" id="docClienteNome" required placeholder="Ex: Maria Oliveira" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1">CPF ou CNPJ do Cliente (opcional)</label>
-                            <input type="text" id="docClienteDoc" placeholder="000.000.000-00" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1">Item do Catálogo</label>
-                            <select id="docItemSelect" required class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand bg-white">
-                                <option value="">Selecione um item...</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1">Quantidade</label>
-                            <input type="number" id="docQuantidade" value="1" min="1" step="1" required class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-700 mb-1">Desconto (%)</label>
-                            <select id="docDesconto" class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand bg-white">
-                                <option value="0">0% (Sem desconto)</option>
-                                <option value="5">5%</option>
-                                <option value="10">10%</option>
-                                <option value="15">15%</option>
-                                <option value="30">30%</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-1">Observações (opcional)</label>
-                        <input type="text" id="docObservacoes" placeholder="Ex: Garantia de 90 dias sobre as peças e serviços." class="w-full text-sm px-3 py-2 border border-gray-200 rounded-xl outline-none focus:border-brand">
-                    </div>
-
-                    <div class="pt-2 flex items-center gap-3">
-                        <button type="submit" id="btnEmitirPdf" class="bg-brand hover:bg-brandHover text-white text-sm px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm flex items-center gap-2">
-                            <span>📄</span> Emitir e Visualizar PDF
-                        </button>
-                    </div>
-                </form>
-
-                <div id="resultadoEmissao" hidden class="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-semibold text-emerald-900" id="resDocTitulo"></p>
-                        <p class="text-xs text-emerald-700" id="resDocDetalhes"></p>
-                    </div>
-                    <a id="resDocLink" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition-colors shadow-sm inline-flex items-center gap-1.5">
-                        <span>📥</span> Abrir PDF
-                    </a>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-3 font-medium">Nº / Tipo</th>
+                                <th class="px-6 py-3 font-medium">Cliente</th>
+                                <th class="px-6 py-3 font-medium">Data Emissão</th>
+                                <th class="px-6 py-3 font-medium text-right">Total</th>
+                                <th class="px-6 py-3 font-medium text-center">PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaHistoricoDocs" class="divide-y divide-gray-100 text-gray-700"></tbody>
+                    </table>
                 </div>
             </section>
         </div>
@@ -231,8 +313,10 @@
         $('data').textContent = 'Hoje é ' + new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) + '.';
 
         let catalogoItens = [];
+        // Itens que farão parte da Nota Fiscal sendo montada
+        let itensNaNota = [];
 
-        function renderizarLinhaItem(item) {
+        function renderizarLinhaCatalogo(item) {
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-gray-50/50 transition-colors';
 
@@ -273,9 +357,9 @@
                 const corpo = $('itens'); 
                 corpo.replaceChildren();
 
-                // Atualiza dropdown de emissão
-                const sel = $('docItemSelect');
-                sel.innerHTML = '<option value="">Selecione um item...</option>';
+                // Atualiza dropdown de itens para a nota fiscal
+                const sel = $('builderItemSelect');
+                sel.innerHTML = '<option value="">Selecione um produto ou serviço...</option>';
                 catalogoItens.forEach(i => {
                     const opt = document.createElement('option');
                     opt.value = i.id;
@@ -290,10 +374,11 @@
                     </td>`;
                     corpo.appendChild(tr);
                     $('btnCarregarVazio').onclick = carregarItensTeste;
-                    return;
+                } else {
+                    catalogoItens.forEach(i => corpo.appendChild(renderizarLinhaCatalogo(i)));
                 }
 
-                catalogoItens.forEach(i => corpo.appendChild(renderizarLinhaItem(i)));
+                await carregarHistoricoDocumentos();
             } catch (e) { 
                 aviso($('aviso'), e.message); 
             }
@@ -309,53 +394,110 @@
 
         $('btnRecarregarTeste').onclick = carregarItensTeste;
 
-        // Importação de planilha
-        $('importar').onclick = async () => {
-            const f = $('arquivo').files[0];
-            if (!f) return aviso($('aviso'), 'Escolha uma planilha .xlsx.');
-            if (!f.name.toLowerCase().endsWith('.xlsx')) return aviso($('aviso'), 'O arquivo precisa ser .xlsx.');
-            if (f.size > 5 * 1024 * 1024) return aviso($('aviso'), 'A planilha passa de 5 MB.');
-            const form = new FormData(); form.append(CFG.campoArquivo, f);
-            await enviar(null, $('importar'), $('aviso'), async () => {
-                const res = await api('/api/catalogo/importar', { metodo: 'POST', form });
-                aviso($('aviso'), res?.mensagem || 'Planilha importada com sucesso!', true);
-                $('arquivo').value = '';
-                await carregar();
+        // Adiciona um item na lista da Nota Fiscal em construção
+        $('btnAdicionarLinha').onclick = () => {
+            const itemId = $('builderItemSelect').value;
+            const qtd = parseFloat($('builderQuantidade').value);
+            const desconto = parseInt($('builderDesconto').value) || 0;
+
+            if (!itemId) {
+                return aviso($('aviso'), 'Selecione um produto ou serviço no seletor.');
+            }
+            if (isNaN(qtd) || qtd <= 0) {
+                return aviso($('aviso'), 'Informe uma quantidade válida.');
+            }
+
+            const itemCatalogo = catalogoItens.find(i => i.id === itemId);
+            if (!itemCatalogo) return;
+
+            const unitario = parseFloat(itemCatalogo.preco);
+            const bruto = unitario * qtd;
+            const vlrDesconto = (bruto * desconto) / 100;
+            const liquido = bruto - vlrDesconto;
+
+            itensNaNota.push({
+                itemCatalogoId: itemCatalogo.id,
+                nome: itemCatalogo.nome,
+                precoUnitario: unitario,
+                quantidade: qtd,
+                descontoPercentual: desconto,
+                valorBruto: bruto,
+                valorDesconto: vlrDesconto,
+                valorLiquido: liquido
             });
+
+            // Reseta controles do builder
+            $('builderItemSelect').value = '';
+            $('builderQuantidade').value = '1';
+            $('builderDesconto').value = '0';
+
+            atualizarTabelaItensNota();
         };
 
-        // Cadastro manual de item
-        $('formNovoItem').onsubmit = async (ev) => {
-            ev.preventDefault();
-            const nome = $('novoItemNome').value.trim();
-            const preco = parseFloat($novoItemPreco = $('novoItemPreco').value);
-            if (!nome || isNaN(preco)) return;
+        function atualizarTabelaItensNota() {
+            const corpo = $('tabelaItensDocumento');
+            corpo.replaceChildren();
 
-            await enviar(null, $('btnSalvarItem'), $('aviso'), async () => {
-                await api('/api/catalogo', {
-                    metodo: 'POST',
-                    corpo: { nome, preco, descricao: null }
-                });
-                aviso($('aviso'), 'Item adicionado ao catálogo!', true);
-                $('novoItemNome').value = '';
-                $('novoItemPreco').value = '';
-                await carregar();
+            if (!itensNaNota.length) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="7" class="px-4 py-6 text-center text-xs text-gray-400">
+                    Nenhum item adicionado ainda. Escolha um produto ou serviço acima e clique em <b>"+ Incluir Item"</b>.
+                </td>`;
+                corpo.appendChild(tr);
+
+                $('resumoSubtotal').textContent = brl(0);
+                $('resumoDesconto').textContent = `- ${brl(0)}`;
+                $('resumoTotal').textContent = brl(0);
+                return;
+            }
+
+            let subtotal = 0;
+            let descontos = 0;
+
+            itensNaNota.forEach((item, idx) => {
+                subtotal += item.valorBruto;
+                descontos += item.valorDesconto;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 text-xs';
+                tr.innerHTML = `
+                    <td class="px-4 py-2.5 font-bold text-gray-500">${idx + 1}</td>
+                    <td class="px-4 py-2.5 font-medium text-gray-900">${item.nome}</td>
+                    <td class="px-4 py-2.5 text-center">${item.quantidade}</td>
+                    <td class="px-4 py-2.5 text-right">${brl(item.precoUnitario)}</td>
+                    <td class="px-4 py-2.5 text-center">${item.descontoPercentual > 0 ? item.descontoPercentual + '%' : '—'}</td>
+                    <td class="px-4 py-2.5 text-right font-semibold text-gray-900">${brl(item.valorLiquido)}</td>
+                    <td class="px-4 py-2.5 text-center">
+                        <button type="button" class="btnRemoverLinha text-red-500 hover:text-red-700 font-bold" data-index="${idx}">
+                            ✕
+                        </button>
+                    </td>
+                `;
+
+                tr.querySelector('.btnRemoverLinha').onclick = () => {
+                    itensNaNota.splice(idx, 1);
+                    atualizarTabelaItensNota();
+                };
+
+                corpo.appendChild(tr);
             });
-        };
 
-        // Emissão de documento & download de PDF
+            const total = subtotal - descontos;
+            $('resumoSubtotal').textContent = brl(subtotal);
+            $('resumoDesconto').textContent = `- ${brl(descontos)}`;
+            $('resumoTotal').textContent = brl(total);
+        }
+
+        // Emissão da Nota Fiscal com múltiplos itens
         $('formEmissao').onsubmit = async (ev) => {
             ev.preventDefault();
             const tipo = $('docTipo').value;
             const clienteNome = $('docClienteNome').value.trim();
             const clienteDocumento = $('docClienteDoc').value.trim() || null;
-            const itemCatalogoId = $('docItemSelect').value;
-            const quantidade = parseFloat($('docQuantidade').value) || 1;
-            const descontoPercentual = parseInt($('docDesconto').value) || 0;
             const observacoes = $('docObservacoes').value.trim() || null;
 
-            if (!itemCatalogoId) {
-                return aviso($('aviso'), 'Selecione um item do catálogo para emitir o documento.');
+            if (!itensNaNota.length) {
+                return aviso($('aviso'), 'Adicione pelo menos um produto ou serviço na nota fiscal antes de emitir.');
             }
 
             await enviar(null, $('btnEmitirPdf'), $('aviso'), async () => {
@@ -364,13 +506,11 @@
                     clienteNome,
                     clienteDocumento,
                     observacoes,
-                    itens: [
-                        {
-                            itemCatalogoId,
-                            quantidade,
-                            descontoPercentual
-                        }
-                    ]
+                    itens: itensNaNota.map(i => ({
+                        itemCatalogoId: i.itemCatalogoId,
+                        quantidade: i.quantidade,
+                        descontoPercentual: i.descontoPercentual
+                    }))
                 };
 
                 const doc = await api('/api/documentos', {
@@ -379,13 +519,13 @@
                 });
 
                 if (doc && doc.id) {
-                    aviso($('aviso'), `Documento #${doc.numero} emitido com sucesso! Total: ${brl(doc.total)}`, true);
+                    const tipoDesc = doc.tipo === 'NOTA_FISCAL' ? 'Nota Fiscal' : (doc.tipo === 'ORDEM_SERVICO' ? 'Ordem de Serviço' : 'Recibo');
+                    aviso($('aviso'), `${tipoDesc} #${doc.numero} emitida com sucesso! Total: ${brl(doc.total)}`, true);
                     
-                    $('resDocTitulo').textContent = `${doc.tipo === 'RECIBO' ? 'Recibo' : 'Ordem de Serviço'} #${doc.numero} emitido para ${doc.clienteNome}`;
-                    $('resDocDetalhes').textContent = `Subtotal: ${brl(doc.subtotal)} | Descontos: ${brl(doc.totalDescontos)} | Total: ${brl(doc.total)}`;
+                    $('resDocTitulo').textContent = `${tipoDesc} #${doc.numero} emitida para ${doc.clienteNome} (${itensNaNota.length} itens)`;
+                    $('resDocDetalhes').textContent = `Subtotal: ${brl(doc.subtotal)} | Descontos: ${brl(doc.totalDescontos)} | Total Líquido: ${brl(doc.total)}`;
                     
                     const link = $('resDocLink');
-                    link.href = `/api/documentos/${doc.id}/pdf`;
                     
                     // Dispara o download automático do PDF usando o token
                     try {
@@ -402,7 +542,107 @@
                     }
 
                     $('resultadoEmissao').hidden = false;
+
+                    // Limpa lista de itens da nota após emissão bem-sucedida
+                    itensNaNota = [];
+                    atualizarTabelaItensNota();
+                    $('docClienteNome').value = '';
+                    $('docClienteDoc').value = '';
+                    $('docObservacoes').value = '';
+
+                    await carregarHistoricoDocumentos();
                 }
+            });
+        };
+
+        // Histórico de Documentos
+        async function carregarHistoricoDocumentos() {
+            try {
+                const docs = await api('/api/documentos');
+                const corpo = $('tabelaHistoricoDocs');
+                corpo.replaceChildren();
+
+                if (!docs || !docs.length) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="5" class="px-6 py-6 text-center text-xs text-gray-400">
+                        Nenhuma nota fiscal ou recibo emitido ainda.
+                    </td>`;
+                    corpo.appendChild(tr);
+                    return;
+                }
+
+                docs.forEach(doc => {
+                    const tipoLabel = doc.tipo === 'NOTA_FISCAL' ? 'Nota Fiscal' : (doc.tipo === 'ORDEM_SERVICO' ? 'Ordem de Serviço' : 'Recibo');
+                    const badgeClass = doc.tipo === 'NOTA_FISCAL' ? 'bg-purple-50 text-purple-700 border-purple-100' : (doc.tipo === 'ORDEM_SERVICO' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100');
+                    const dataFormatada = doc.emitidoEm ? new Date(doc.emitidoEm).toLocaleString('pt-BR') : '—';
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-gray-50/50 text-xs transition-colors';
+                    tr.innerHTML = `
+                        <td class="px-6 py-3 font-semibold text-gray-900">
+                            #${doc.numero} 
+                            <span class="ml-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border ${badgeClass}">${tipoLabel}</span>
+                        </td>
+                        <td class="px-6 py-3 text-gray-800 font-medium">${doc.clienteNome}</td>
+                        <td class="px-6 py-3 text-gray-500">${dataFormatada}</td>
+                        <td class="px-6 py-3 text-right font-bold text-gray-900">${brl(doc.total)}</td>
+                        <td class="px-6 py-3 text-center">
+                            <button class="btnBaixarPdf text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-2.5 py-1 rounded-md transition-colors" data-id="${doc.id}">
+                                📄 PDF
+                            </button>
+                        </td>
+                    `;
+
+                    tr.querySelector('.btnBaixarPdf').onclick = async () => {
+                        try {
+                            const blob = await fetch(`/api/documentos/${doc.id}/pdf`, {
+                                headers: { 'Authorization': 'Bearer ' + Sessao.token }
+                            }).then(r => r.blob());
+                            const url = window.URL.createObjectURL(blob);
+                            window.open(url, '_blank');
+                        } catch (e) {
+                            aviso($('aviso'), 'Erro ao baixar PDF: ' + e.message);
+                        }
+                    };
+
+                    corpo.appendChild(tr);
+                });
+            } catch (ignored) {}
+        }
+
+        $('btnAtualizarDocs').onclick = carregarHistoricoDocumentos;
+
+        // Importação de planilha
+        $('importar').onclick = async () => {
+            const f = $('arquivo').files[0];
+            if (!f) return aviso($('aviso'), 'Escolha uma planilha .xlsx.');
+            if (!f.name.toLowerCase().endsWith('.xlsx')) return aviso($('aviso'), 'O arquivo precisa ser .xlsx.');
+            if (f.size > 5 * 1024 * 1024) return aviso($('aviso'), 'A planilha passa de 5 MB.');
+            const form = new FormData(); form.append(CFG.campoArquivo, f);
+            await enviar(null, $('importar'), $('aviso'), async () => {
+                const res = await api('/api/catalogo/importar', { metodo: 'POST', form });
+                aviso($('aviso'), res?.mensagem || 'Planilha importada com sucesso!', true);
+                $('arquivo').value = '';
+                await carregar();
+            });
+        };
+
+        // Cadastro manual de item no catálogo
+        $('formNovoItem').onsubmit = async (ev) => {
+            ev.preventDefault();
+            const nome = $('novoItemNome').value.trim();
+            const preco = parseFloat($('novoItemPreco').value);
+            if (!nome || isNaN(preco)) return;
+
+            await enviar(null, $('btnSalvarItem'), $('aviso'), async () => {
+                await api('/api/catalogo', {
+                    metodo: 'POST',
+                    corpo: { nome, preco, descricao: null }
+                });
+                aviso($('aviso'), 'Item adicionado ao catálogo!', true);
+                $('novoItemNome').value = '';
+                $('novoItemPreco').value = '';
+                await carregar();
             });
         };
 
