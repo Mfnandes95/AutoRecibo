@@ -52,7 +52,7 @@ public class PdfService {
             if (isOs) {
                 tipoTitulo = "ORDEM DE SERVIÇO";
             } else if (isNf) {
-                tipoTitulo = "NOTA FISCAL DE SERVIÇOS E PRODUTOS";
+                tipoTitulo = "NOTA DE SERVIÇOS E PRODUTOS (SEM VALOR FISCAL)";
             } else {
                 tipoTitulo = "RECIBO DE PAGAMENTO";
             }
@@ -115,7 +115,7 @@ public class PdfService {
 
         } catch (Exception e) {
             log.error("Erro ao gerar PDF para o documento ID: {}", doc.getId(), e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha na geração do arquivo PDF: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha na geração do arquivo PDF.");
         }
     }
 

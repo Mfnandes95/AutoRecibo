@@ -19,4 +19,6 @@ public interface ItemCatalogoRepository
     );
 
     Optional<ItemCatalogo> findByNome(String nome);
+
+    void deleteAllByUsuario_Id(UUID usuarioId);
 }

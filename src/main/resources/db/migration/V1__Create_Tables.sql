@@ -8,7 +8,8 @@ CREATE TABLE tb_usuario (
     documento VARCHAR(14) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,
-    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    termos_aceitos_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 2. Catálogo de Itens (produtos e serviços do usuário)

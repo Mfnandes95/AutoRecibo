@@ -18,4 +18,6 @@ public interface DocumentoRepository extends JpaRepository<Documento, UUID> {
 
     @Query("select coalesce(max(d.numero), 0) from Documento d where d.usuario.id = :usuarioId")
     long maiorNumero(@Param("usuarioId") UUID usuarioId);
+
+    void deleteAllByUsuarioId(UUID usuarioId);
 }

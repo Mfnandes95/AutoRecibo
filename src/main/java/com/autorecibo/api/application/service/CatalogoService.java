@@ -143,8 +143,9 @@ public class CatalogoService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A planilha não contém abas válidas.");
             }
 
-            // Começa da linha 1 (linha 0 é o cabeçalho)
-            for (int r = 1; r <= sheet.getLastRowNum(); r++) {
+            // Começa da linha 1 (linha 0 é o cabeçalho) com limite de segurança contra DoS (máx. 500 itens por importação)
+            int limiteLinha = Math.min(sheet.getLastRowNum(), 500);
+            for (int r = 1; r <= limiteLinha; r++) {
                 Row row = sheet.getRow(r);
                 if (row == null) continue;
 
@@ -172,8 +173,9 @@ public class CatalogoService {
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Erro ao importar planilha para o usuário: {}", email, e);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao processar arquivo .xlsx: " + e.getMessage());
+            // Minimização de dados pessoais em logs (LGPD Art. 6º, III): loga apenas o UUID, nunca o e-mail
+            log.error("Erro ao importar planilha para o usuário ID: {}", usuario.getId(), e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao processar arquivo .xlsx. Verifique se o formato da planilha é válido.");
         }
     }
 

@@ -37,6 +37,25 @@
                 <input type="password" id="confirma" autocomplete="new-password" required
                     class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none">
             </div>
+
+            <!-- Ciência e Consentimento LGPD (Lei nº 13.709/2018) -->
+            <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200 text-xs text-gray-600 space-y-2">
+                <label class="flex items-start gap-2.5 cursor-pointer">
+                    <input type="checkbox" id="aceiteLgpd" required class="mt-0.5 accent-emerald-600 rounded">
+                    <span>
+                        Declaro ciência e concordo com o tratamento do meu e-mail e CPF/CNPJ exclusivamente para identificação do emissor e geração de documentos comerciais, conforme a <strong>LGPD (Lei nº 13.709/2018)</strong>.
+                    </span>
+                </label>
+                <details class="text-[11px] text-gray-500">
+                    <summary class="cursor-pointer text-brand font-medium hover:underline">Ver Aviso de Privacidade e Direitos do Titular</summary>
+                    <p class="mt-1.5 leading-relaxed">
+                        <strong>Finalidade e Base Legal:</strong> Execução de contrato (Art. 7º, V da LGPD) para emissão de recibos e ordens de serviço.
+                        <strong>Direitos (Art. 18):</strong> Você pode exportar todos os seus dados ou excluir permanentemente sua conta a qualquer momento diretamente pelo painel.
+                        <strong>Canal LGPD:</strong> privacidade@autorecibo.com.br.
+                    </p>
+                </details>
+            </div>
+
             <button type="submit" id="criar"
                 class="w-full bg-brand hover:bg-brandHover disabled:opacity-60 text-white font-medium py-3 rounded-xl transition-all shadow-sm">
                 Criar conta
@@ -56,14 +75,18 @@
             const email = $('email').value.trim().toLowerCase();
             const documento = soDigitos($('documento').value);
             const senha = $('senha').value;
+            const aceiteLgpd = $('aceiteLgpd').checked;
 
             if (!/^\S+@\S+\.\S+$/.test(email)) return aviso(erro, 'Informe um email válido.');
-            if (documento.length !== 11 && documento.length !== 14) return aviso(erro, 'O CPF tem 11 números e o CNPJ tem 14.');
+            if ((documento.length !== 11 && documento.length !== 14) || /^(\d)\1+$/.test(documento)) {
+                return aviso(erro, 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.');
+            }
             if (senha.length < 8) return aviso(erro, 'A senha precisa ter no mínimo 8 caracteres.');
             if (senha !== $('confirma').value) return aviso(erro, 'As senhas não são iguais.');
+            if (!aceiteLgpd) return aviso(erro, 'Confirme a ciência sobre o tratamento de dados (LGPD) para criar a conta.');
 
             enviar(ev.target, $('criar'), erro, async () => {
-                await api('/api/auth/registro', { metodo: 'POST', corpo: { email, documento, senha } });
+                await api('/api/auth/registro', { metodo: 'POST', corpo: { email, documento, senha, aceiteLgpd: true } });
                 location.href = 'index.html?cadastro=ok';
             });
         });

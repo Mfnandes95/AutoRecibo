@@ -11,10 +11,6 @@ import java.util.UUID;
 
 /**
  * Representa um usuário (microempreendedor) do sistema.
- *
- * NOTA: esta classe foi reconstruída a partir das colunas observadas no log
- * do Hibernate (tb_usuario). Se você já tem essa entidade implementada no
- * projeto com nomes diferentes, ajuste os campos abaixo em vez de duplicar.
  */
 @Entity
 @Table(name = "tb_usuario")
@@ -40,4 +36,7 @@ public class Usuario {
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
+
+    @Column(name = "termos_aceitos_em")
+    private LocalDateTime termosAceitosEm;
 }

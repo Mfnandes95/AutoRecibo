@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS public.tb_usuario (
     documento VARCHAR(14) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,
-    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    termos_aceitos_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 COMMENT ON TABLE public.tb_usuario IS 'Usuários emissores (MEIs e autônomos) cadastrados no sistema AutoRecibo.';
