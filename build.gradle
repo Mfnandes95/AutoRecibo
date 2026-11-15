@@ -47,6 +47,7 @@ dependencies {
 
     // Banco de Dados
     runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
 
     // Testes (Use apenas o starter principal de testes)
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
