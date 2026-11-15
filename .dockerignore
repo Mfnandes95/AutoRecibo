@@ -1,0 +1,7 @@
+.git
+.gradle
+.vscode
+build
+bin
+*.log
+planilha_produtos_teste.csv
